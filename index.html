@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>人生的账本，有出也有入</title>
+<style>
+/* ========== 主题色变量（马卡龙色系） ========== */
+:root {
+  --theme: pink;
+  --primary: #FFB5BA;
+  --primary-deep: #FF8FA0;
+  --primary-light: #FFE1E4;
+  --accent: #FF8FA0;
+  --bg-gradient: linear-gradient(135deg, #FFF0F3 0%, #FFE4EC 50%, #F3E8FF 100%);
+  --card-bg: rgba(255, 255, 255, 0.65);
+  --card-bg-solid: #FFFBFC;
+}
+body[data-theme="blue"] {
+  --theme: blue;
+  --primary: #B5DEFF;
+  --primary-deep: #7FBFFF;
+  --primary-light: #E0F0FF;
+  --accent: #7FBFFF;
+  --bg-gradient: linear-gradient(135deg, #F0F8FF 0%, #E0F0FF 50%, #E8F0FF 100%);
+}
+body[data-theme="green"] {
+  --theme: green;
+  --primary: #C9F0C5;
+  --primary-deep: #9BE09A;
+  --primary-light: #E5F8E2;
+  --accent: #9BE09A;
+  --bg-gradient: linear-gradient(135deg, #F2FFF0 0%, #E5F8E2 50%, #F0FFF0 100%);
+}
+body[data-theme="orange"] {
+  --theme: orange;
+  --primary: #FFE4B5;
+  --primary-deep: #FFCF85;
+  --primary-light: #FFF3DF;
+  --accent: #FFCF85;
+  --bg-gradient: linear-gradient(135deg, #FFFAF0 0%, #FFF3DF 50%, #FFF8E8 100%);
+}
+body[data-theme="purple"] {
+  --theme: purple;
+  --primary: #E4C9F0;
+  --primary-deep: #CDA6E3;
+  --primary-light: #F3E8FB;
+  --accent: #CDA6E3;
+  --bg-gradient: linear-gradient(135deg, #FBF3FF 0%, #F3E8FB 50%, #FAF0FF 100%);
+}
+body[data-theme="peach"] {
+  --theme: peach;
+  --primary: #FFD6E8;
+  --primary-deep: #FFB3D1;
+  --primary-light: #FFEBF3;
+  --accent: #FFB3D1;
+  --bg-gradient: linear-gradient(135deg, #FFF0F5 0%, #FFEBF3 50%, #FFF5F8 100%);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  width: 100%; height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  color: #4A4A5C;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  font-size: 15px; line-height: 1.6;
+  overflow-x: hidden;
+}
+:root {
+  --mc-pink: #FFB5BA; --mc-blue: #B5DEFF; --mc-green: #C9F0C5;
+  --mc-orange: #FFE4B5; --mc-purple: #E4C9F0; --mc-yellow: #FFF3B5;
+  --mc-mint: #B5F0E8; --mc-peach: #FFD6E8; --mc-lavender: #D9C5F0;
+  --mc-sky: #B5E3F0;
+  --text-main: #4A4A5C; --text-light: #8E8EA3; --text-soft: #B5B5C9;
+  --income: #7ED6A5; --expense: #FF9AA2; --balance: #B5DEFF;
+}
+@media (hover: hover) and (pointer: fine) {
+  body { cursor: none; }
+  body * { cursor: none !important; }
+}
+.paw-cursor {
+  position: fixed; top: 0; left: 0; width: 32px; height: 32px;
+  pointer-events: none; z-index: 99999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 4px 8px rgba(255, 143, 160, 0.35));
+}
+.paw-cursor::before {
+  content: "🐾"; font-size: 26px; display: block; opacity: 0.85;
+  transform: rotate(-15deg);
+  animation: pawWiggle 2s ease-in-out infinite;
+}
+.paw-cursor.clicking::before { animation: pawBounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.paw-trail {
+  position: fixed; top: 0; left: 0; width: 16px; height: 16px;
+  pointer-events: none; z-index: 99998; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,181,186,0.5) 0%, rgba(255,181,186,0) 70%);
+  transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.2s;
+}
+@keyframes pawWiggle { 0%,100%{transform:rotate(-15deg) scale(1);} 50%{transform:rotate(10deg) scale(1.05);} }
+@keyframes pawBounce { 0%{transform:scale(1);} 40%{transform:scale(1.4) rotate(-5deg);} 100%{transform:scale(1);} }
+.jelly-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border-radius: 24px; padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(180,140,160,0.12), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -4px 12px rgba(255,181,186,0.15);
+  position: relative; overflow: hidden;
+}
+.jelly-card::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 60%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 24px 24px 0 0; pointer-events: none;
+}
+.jelly-card-mini {
+  background: var(--card-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-radius: 18px; padding: 14px 16px;
+  border: 1px solid rgba(255,255,255,0.5);
+  box-shadow: 0 4px 16px rgba(180,140,160,0.1), inset 0 2px 4px rgba(255,255,255,0.8);
+}
+.jelly-btn {
+  position: relative; border: none; border-radius: 999px;
+  padding: 12px 24px; font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 6px 16px rgba(255,143,160,0.3), inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -4px 10px rgba(0,0,0,0.05);
+  letter-spacing: 2px; overflow: hidden;
+}
+.jelly-btn::before {
+  content: ""; position: absolute; top: 2px; left: 10%; right: 10%; height: 38%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 999px; pointer-events: none;
+}
+.jelly-btn:hover { transform: translateY(-2px) scale(1.02); }
+.jelly-btn:active { transform: translateY(1px) scale(0.98); }
+.btn-primary { background: linear-gradient(180deg, var(--primary) 0%, var(--primary-deep) 100%); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.btn-ghost { background: rgba(255,255,255,0.7); color: var(--text-main); box-shadow: 0 4px 12px rgba(180,140,160,0.12), inset 0 2px 4px rgba(255,255,255,0.8); }
+.btn-block { width: 100%; padding: 14px; }
+.jelly-input {
+  background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; outline: none;
+  font-size: 15px; transition: all 0.25s;
+  box-shadow: inset 0 2px 6px rgba(180,140,160,0.06), 0 2px 6px rgba(180,140,160,0.06);
+}
+.jelly-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-light), inset 0 2px 6px rgba(180,140,160,0.06); }
+.input-wrap { display: flex; align-items: center; padding: 4px 14px; margin-bottom: 14px; }
+.input-wrap input, .input-wrap select { flex: 1; border: none; background: transparent; outline: none; padding: 12px 8px; font-size: 15px; color: var(--text-main); min-width: 0; }
+.input-wrap input::placeholder { color: var(--text-soft); }
+.input-icon { font-size: 18px; margin-right: 8px; opacity: 0.7; }
+.amount-input .amount-sign { font-size: 24px; font-weight: 700; color: var(--primary-deep); margin-right: 8px; }
+.amount-input input { font-size: 28px; font-weight: 700; color: var(--text-main); padding: 10px 8px; }
+.auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; overflow: hidden; }
+.auth-page::before, .auth-page::after { content: ""; position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.6; animation: floatBlob 8s ease-in-out infinite; }
+.auth-page::before { width: 380px; height: 380px; background: var(--mc-pink); top: -80px; left: -80px; }
+.auth-page::after { width: 320px; height: 320px; background: var(--mc-blue); bottom: -60px; right: -60px; animation-delay: -4s; }
+@keyframes floatBlob { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(20px,-30px) scale(1.08);} }
+.auth-card { width: 100%; max-width: 420px; position: relative; z-index: 2; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes popIn { from{opacity:0;transform:translateY(30px) scale(0.95);} to{opacity:1;transform:translateY(0) scale(1);} }
+.brand-logo { font-size: 54px; text-align: center; margin-bottom: 8px; animation: bounceSoft 2.5s ease-in-out infinite; }
+@keyframes bounceSoft { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+.brand-title { text-align: center; font-size: 22px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; background: linear-gradient(135deg, var(--primary-deep), var(--mc-purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.brand-subtitle { text-align: center; font-size: 13px; color: var(--text-light); margin-bottom: 24px; }
+.auth-tabs { display: flex; background: rgba(255,255,255,0.6); border-radius: 999px; padding: 4px; margin-bottom: 20px; }
+.tab-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 999px; font-size: 15px; font-weight: 600; color: var(--text-light); transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+.tab-btn.active { background: linear-gradient(180deg, var(--primary) 0%, var(--primary-deep) 100%); color: #fff; box-shadow: 0 4px 12px rgba(255,143,160,0.3); }
+.auth-form { display: none; }
+.auth-form.active { display: block; }
+.color-picker { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 0 4px; }
+.color-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--c); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -3px 6px rgba(0,0,0,0.05); transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); position: relative; }
+.color-dot:hover { transform: scale(1.15); }
+.color-dot.selected { transform: scale(1.2); border-color: var(--text-main); box-shadow: 0 4px 14px rgba(0,0,0,0.18), inset 0 2px 4px rgba(255,255,255,0.8); }
+.color-dot.selected::after { content: "✓"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.input-wrap label { font-size: 14px; color: var(--text-light); padding: 12px 8px 0 0; flex-shrink: 0; }
+.app { width: 100%; min-height: 100vh; }
+.mobile-header { display: none; position: sticky; top: 0; z-index: 50; padding: 10px 14px; background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.5); }
+.menu-btn { width: 40px; height: 40px; border: none; background: var(--card-bg); border-radius: 12px; font-size: 20px; box-shadow: 0 2px 8px rgba(180,140,160,0.1); }
+.mobile-title { flex: 1; text-align: center; margin: 0 8px; }
+.brand-title-mini { font-size: 13px; color: var(--text-light); font-weight: 600; }
+.ledger-name { font-size: 16px; font-weight: 700; color: var(--text-main); }
+.header-actions { display: flex; gap: 6px; }
+.icon-btn { width: 40px; height: 40px; border: none; background: var(--card-bg); border-radius: 12px; font-size: 18px; box-shadow: 0 2px 8px rgba(180,140,160,0.1); }
+.app-body { display: flex; min-height: 100vh; }
+.sidebar { width: 270px; flex-shrink: 0; background: rgba(255,255,255,0.55); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border-right: 1px solid rgba(255,255,255,0.5); display: flex; flex-direction: column; padding: 24px 16px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar-header { display: flex; align-items: center; gap: 12px; padding: 8px 10px 20px; border-bottom: 1px dashed rgba(180,140,160,0.2); margin-bottom: 16px; }
+.paw-logo { width: 48px; height: 48px; background: linear-gradient(180deg, var(--primary) 0%, var(--primary-deep) 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 6px 16px rgba(255,143,160,0.3), inset 0 2px 4px rgba(255,255,255,0.6); }
+.sidebar-title { font-size: 15px; font-weight: 700; color: var(--text-main); }
+.sidebar-ledger { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.nav-list { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; cursor: pointer; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); position: relative; font-weight: 500; color: var(--text-light); }
+.nav-item:hover { background: rgba(255,255,255,0.6); color: var(--text-main); transform: translateX(3px); }
+.nav-item.active { background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: var(--text-main); box-shadow: 0 6px 16px rgba(255,143,160,0.2), inset 0 2px 4px rgba(255,255,255,0.6); }
+.nav-item.active::before { content: ""; position: absolute; left: -4px; width: 4px; height: 24px; background: var(--primary-deep); border-radius: 4px; }
+.nav-icon { font-size: 20px; }
+.nav-label { font-size: 14px; }
+.sidebar-footer { display: flex; flex-direction: column; gap: 14px; padding-top: 14px; }
+.user-info { display: flex; align-items: center; gap: 12px; }
+.avatar { width: 42px; height: 42px; background: linear-gradient(135deg, var(--mc-peach), var(--primary)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: inset 0 2px 4px rgba(255,255,255,0.6); }
+.username { font-size: 14px; font-weight: 700; color: var(--text-main); }
+.user-role { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.theme-switcher { padding: 0 6px; }
+.theme-title { font-size: 12px; color: var(--text-light); margin-bottom: 8px; }
+.theme-switcher .color-dot { width: 26px; height: 26px; }
+.sidebar-mask { display: none; position: fixed; inset: 0; background: rgba(74,74,92,0.3); z-index: 98; backdrop-filter: blur(2px); }
+.sidebar-mask.show { display: block; }
+.main-content { flex: 1; padding: 28px 32px 40px; overflow-y: auto; min-width: 0; }
+.page { display: none; animation: fadeUp 0.4s ease; }
+.page.active { display: block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
+.section { margin-bottom: 28px; }
+.section-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.title-icon { font-size: 20px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+.section-header .section-title { margin-bottom: 0; }
+.filter-select { padding: 10px 16px; font-size: 14px; min-width: 120px; }
+.overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.overview-card { padding: 20px; position: relative; overflow: hidden; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+.overview-card:hover { transform: translateY(-4px); }
+.ov-label { font-size: 13px; color: var(--text-light); margin-bottom: 6px; }
+.ov-amount { font-size: 26px; font-weight: 700; color: var(--text-main); }
+.ov-ico { position: absolute; right: 14px; top: 14px; font-size: 32px; opacity: 0.55; }
+.income-card { background: linear-gradient(135deg, rgba(190,240,200,0.7), rgba(190,240,200,0.4)); }
+.income-card .ov-amount { color: #4FB57E; }
+.expense-card { background: linear-gradient(135deg, rgba(255,180,185,0.7), rgba(255,180,185,0.4)); }
+.expense-card .ov-amount { color: #E87785; }
+.balance-card { background: linear-gradient(135deg, rgba(181,222,255,0.7), rgba(181,222,255,0.4)); }
+.balance-card .ov-amount { color: #5B9FD9; }
+.total-card { background: linear-gradient(135deg, var(--primary-light), var(--primary)); }
+.total-card .ov-amount { color: var(--primary-deep); }
+.record-form { max-width: 720px; }
+.type-switch { display: flex; background: rgba(255,255,255,0.6); border-radius: 999px; padding: 4px; margin-bottom: 20px; }
+.type-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 999px; font-size: 15px; font-weight: 600; color: var(--text-light); transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+.type-btn.active { color: #fff; box-shadow: 0 4px 12px rgba(180,140,160,0.2); }
+.type-btn[data-type="expense"].active { background: linear-gradient(180deg, #FFB5BA 0%, #FF8FA0 100%); }
+.type-btn[data-type="income"].active { background: linear-gradient(180deg, #BEE8C8 0%, #8FD5A0 100%); }
+.form-row { margin-bottom: 16px; }
+.row-label { display: block; font-size: 13px; color: var(--text-light); margin-bottom: 8px; padding-left: 4px; }
+.category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; }
+.cat-item { background: rgba(255,255,255,0.7); border: 2px solid transparent; border-radius: 16px; padding: 12px 6px; text-align: center; cursor: pointer; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); box-shadow: 0 2px 8px rgba(180,140,160,0.08), inset 0 2px 4px rgba(255,255,255,0.8); }
+.cat-item:hover { transform: translateY(-2px) scale(1.05); }
+.cat-item.selected { border-color: var(--primary); background: linear-gradient(180deg, var(--primary-light) 0%, rgba(255,255,255,0.8) 100%); box-shadow: 0 6px 16px rgba(255,143,160,0.2); }
+.cat-icon { font-size: 24px; margin-bottom: 4px; }
+.cat-name { font-size: 12px; color: var(--text-main); font-weight: 500; }
+.member-select { display: flex; flex-wrap: wrap; gap: 10px; }
+.member-chip { background: rgba(255,255,255,0.7); border-radius: 999px; padding: 8px 14px; font-size: 13px; border: 2px solid transparent; cursor: pointer; transition: all 0.25s; box-shadow: 0 2px 8px rgba(180,140,160,0.08); display: flex; align-items: center; gap: 6px; }
+.member-chip.selected { border-color: var(--primary); background: var(--primary-light); }
+.member-chip .m-avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--mc-blue); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.detail-list { padding: 0; overflow: hidden; }
+.detail-date-group { padding: 14px 20px 6px; background: rgba(255,255,255,0.3); border-bottom: 1px solid rgba(255,255,255,0.5); }
+.detail-date { font-size: 13px; font-weight: 700; color: var(--text-main); }
+.detail-date-summary { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.detail-item { display: flex; align-items: center; padding: 14px 20px; gap: 14px; border-bottom: 1px dashed rgba(180,140,160,0.12); transition: background 0.2s; }
+.detail-item:last-child { border-bottom: none; }
+.detail-item:hover { background: rgba(255,255,255,0.4); }
+.d-caticon { width: 44px; height: 44px; border-radius: 14px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(255,255,255,0.6); }
+.d-main { flex: 1; min-width: 0; }
+.d-catname { font-size: 15px; font-weight: 600; color: var(--text-main); }
+.d-note { font-size: 12px; color: var(--text-light); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-member { font-size: 11px; color: var(--text-soft); background: rgba(255,255,255,0.6); padding: 2px 8px; border-radius: 999px; margin-top: 4px; display: inline-block; }
+.d-amount { font-size: 17px; font-weight: 700; flex-shrink: 0; }
+.d-amount.income { color: #4FB57E; }
+.d-amount.expense { color: #E87785; }
+.d-del { width: 28px; height: 28px; border: none; background: transparent; border-radius: 8px; opacity: 0; transition: all 0.2s; font-size: 14px; }
+.detail-item:hover .d-del { opacity: 0.7; }
+.d-del:hover { background: rgba(255,143,160,0.15); opacity: 1 !important; }
+.empty-state { padding: 48px 20px; text-align: center; }
+.empty-ico { font-size: 56px; margin-bottom: 12px; opacity: 0.7; animation: bob 2s ease-in-out infinite; }
+@keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+.empty-text { color: var(--text-light); font-size: 14px; }
+.cat-tabs { display: flex; background: rgba(255,255,255,0.6); border-radius: 999px; padding: 4px; margin-bottom: 16px; }
+.cat-tab { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 999px; font-weight: 600; color: var(--text-light); transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); font-size: 14px; }
+.cat-tab.active { background: linear-gradient(180deg, var(--primary) 0%, var(--primary-deep) 100%); color: #fff; box-shadow: 0 4px 12px rgba(255,143,160,0.3); }
+.add-cat-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.add-cat-row input { padding: 10px 14px; font-size: 14px; flex: 1; min-width: 100px; }
+.cat-icon-input { max-width: 140px; }
+.cat-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.cat-manage-item { background: rgba(255,255,255,0.7); border-radius: 14px; padding: 12px; text-align: center; position: relative; box-shadow: 0 2px 8px rgba(180,140,160,0.08); }
+.cat-manage-item .mi { font-size: 26px; }
+.cat-manage-item .mn { font-size: 13px; margin-top: 4px; color: var(--text-main); font-weight: 500; }
+.cat-manage-item .mdel { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border: none; border-radius: 50%; background: rgba(255,143,160,0.2); color: #E87785; font-size: 12px; cursor: pointer; }
+.permission-note { background: rgba(255,228,181,0.4); padding: 10px 14px; border-radius: 12px; font-size: 13px; color: #B8860B; margin-bottom: 16px; }
+.member-list { margin-bottom: 16px; }
+.member-row { display: flex; align-items: center; padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.6); margin-bottom: 10px; gap: 12px; }
+.mb-avatar { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--mc-blue), var(--mc-purple)); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.mb-info { flex: 1; }
+.mb-name { font-size: 14px; font-weight: 600; color: var(--text-main); }
+.mb-sub { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.mb-role { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--primary-light); color: var(--primary-deep); }
+.mb-role.owner { background: linear-gradient(135deg, #FFE4B5, #FFD6A8); color: #C88400; }
+.mb-role.admin { background: linear-gradient(135deg, #E4C9F0, #D9B8EC); color: #8B5FBF; }
+.mb-role.editor { background: linear-gradient(135deg, #B5DEFF, #A8D0F5); color: #4F86C8; }
+.mb-role.viewer { background: linear-gradient(135deg, #C9F0C5, #B8E8B3); color: #559E4F; }
+.mb-remove { width: 30px; height: 30px; border: none; border-radius: 10px; background: rgba(255,143,160,0.15); color: #E87785; cursor: pointer; font-size: 14px; }
+.invite-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.invite-input { flex: 1; min-width: 150px; padding: 10px 14px; font-size: 14px; }
+.role-select { padding: 10px 14px; font-size: 14px; min-width: 110px; }
+.share-link-row { padding-top: 14px; border-top: 1px dashed rgba(180,140,160,0.18); }
+.share-title { font-size: 13px; color: var(--text-light); margin-bottom: 8px; }
+.link-box { display: flex; gap: 10px; }
+.link-box input { flex: 1; padding: 10px 14px; font-size: 13px; color: var(--text-light); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.wide-panel { grid-column: 1 / -1; }
+.stats-panel { padding: 20px; }
+.stats-title { font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 14px; }
+.pie-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+.pie-wrap canvas { max-width: 260px; max-height: 260px; }
+.bar-wrap { overflow-x: auto; padding-bottom: 6px; }
+.bar-wrap canvas { width: 100% !important; max-width: 720px; height: auto !important; }
+.legend-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-main); }
+.legend-color { width: 14px; height: 14px; border-radius: 5px; flex-shrink: 0; box-shadow: inset 0 2px 3px rgba(255,255,255,0.6); }
+.legend-amount { margin-left: auto; font-weight: 700; }
+.member-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.mstat-item { background: rgba(255,255,255,0.6); border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; box-shadow: inset 0 2px 4px rgba(255,255,255,0.8); }
+.ms-avatar { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--mc-peach), var(--mc-purple)); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.ms-info { flex: 1; }
+.ms-name { font-size: 14px; font-weight: 600; color: var(--text-main); }
+.ms-bar { height: 6px; background: rgba(180,140,160,0.15); border-radius: 999px; margin: 6px 0; overflow: hidden; }
+.ms-bar-inner { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-deep)); border-radius: 999px; transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+.ms-num { font-size: 12px; color: var(--text-light); }
+.ledger-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.ledger-card { padding: 20px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.ledger-card:hover { transform: translateY(-6px) scale(1.02); }
+.ledger-card.current { border: 2px solid var(--primary-deep); box-shadow: 0 10px 28px rgba(255,143,160,0.3); }
+.lg-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.lg-ico { width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, var(--primary-light), var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(255,143,160,0.2); }
+.lg-name { font-size: 17px; font-weight: 700; color: var(--text-main); }
+.lg-desc { font-size: 12px; color: var(--text-light); }
+.lg-stats { display: flex; gap: 16px; padding-top: 12px; border-top: 1px dashed rgba(180,140,160,0.18); }
+.lg-stat { font-size: 12px; }
+.lg-stat .lbl { color: var(--text-light); }
+.lg-stat .val { font-weight: 700; color: var(--text-main); font-size: 14px; }
+.lg-members { display: flex; margin-top: 10px; }
+.lg-m { width: 24px; height: 24px; border-radius: 50%; background: var(--mc-blue); border: 2px solid #fff; margin-right: -6px; display: flex; align-items: center; justify-content: center; font-size: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.modal-mask { position: fixed; inset: 0; background: rgba(74,74,92,0.35); display: flex; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); padding: 20px; animation: fadeIn 0.25s; }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+.modal { width: 100%; max-width: 400px; animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 18px; color: var(--text-main); text-align: center; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--card-bg); backdrop-filter: blur(20px); padding: 12px 24px; border-radius: 999px; box-shadow: 0 10px 30px rgba(180,140,160,0.2); font-size: 14px; font-weight: 600; color: var(--text-main); z-index: 9999; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); border: 1px solid rgba(255,255,255,0.5); }
+.toast.show { transform: translateX(-50%) translateY(0); }
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+  .mobile-header { display: flex; }
+  .sidebar { position: fixed; left: -290px; top: 0; height: 100vh; z-index: 99; width: 260px; transition: left 0.3s cubic-bezier(0.34,1.56,0.64,1); box-shadow: 10px 0 30px rgba(0,0,0,0.15); }
+  .sidebar.show { left: 0; }
+  .main-content { padding: 18px 14px 28px; }
+  .app-body { min-height: calc(100vh - 60px); }
+  .overview-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .overview-card { padding: 14px; }
+  .ov-amount { font-size: 20px; }
+  .ov-ico { font-size: 24px; right: 10px; top: 10px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 16px; margin-bottom: 12px; }
+  .category-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .cat-item { padding: 10px 4px; }
+  .cat-icon { font-size: 20px; }
+  .cat-name { font-size: 11px; }
+  .detail-item { padding: 12px 14px; gap: 10px; }
+  .d-caticon { width: 40px; height: 40px; font-size: 20px; border-radius: 12px; }
+  .d-catname { font-size: 14px; }
+  .d-amount { font-size: 15px; }
+  .d-del { opacity: 0.7; }
+  .amount-input input { font-size: 22px; }
+  .jelly-btn { padding: 11px 20px; font-size: 14px; }
+  .ledger-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .ledger-card { padding: 14px; }
+  .lg-name { font-size: 15px; }
+  .paw-cursor, .paw-trail { display: none; }
+  .invite-row { flex-direction: column; }
+  .invite-row > * { width: 100%; }
+  .role-select { width: 100%; }
+  .cat-list { grid-template-columns: repeat(3, 1fr); }
+  .member-stats { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .overview-grid { grid-template-columns: repeat(2, 1fr); }
+  .overview-card { padding: 12px; border-radius: 18px; }
+  .ov-amount { font-size: 18px; }
+  .category-grid { grid-template-columns: repeat(4, 1fr); }
+  .ledger-grid { grid-template-columns: 1fr 1fr; }
+  .auth-card { padding: 20px !important; }
+  .brand-title { font-size: 19px; }
+  .brand-logo { font-size: 44px; }
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,143,160,0.3); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,143,160,0.5); }
+/* 导入账单 */
+.import-btn { padding: 8px 14px !important; font-size: 13px !important; letter-spacing: 1px; margin-right: 8px; }
+.import-tabs { display: flex; background: rgba(255,255,255,0.6); border-radius: 999px; padding: 4px; margin-bottom: 14px; }
+.import-tab { flex: 1; padding: 8px; border: none; background: transparent; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--text-light); transition: all 0.25s; cursor: pointer; }
+.import-tab.active { background: linear-gradient(180deg, var(--primary) 0%, var(--primary-deep) 100%); color: #fff; box-shadow: 0 4px 12px rgba(255,143,160,0.3); }
+.import-info { font-size: 12px; color: var(--text-light); margin-bottom: 12px; line-height: 1.5; }
+.import-dropzone { border: 2px dashed rgba(255,143,160,0.3); border-radius: 16px; padding: 28px 16px; text-align: center; cursor: pointer; transition: all 0.25s; background: rgba(255,255,255,0.4); }
+.import-dropzone:hover { border-color: var(--primary-deep); background: rgba(255,255,255,0.6); }
+.dz-icon { font-size: 36px; margin-bottom: 8px; }
+.dz-text { font-size: 14px; font-weight: 600; color: var(--text-main); }
+.dz-hint { font-size: 12px; color: var(--text-soft); margin-top: 4px; }
+.import-preview-wrap { max-height: 280px; overflow-y: auto; margin: 12px 0; border-radius: 14px; background: rgba(255,255,255,0.5); }
+.import-preview-row { display: flex; align-items: center; padding: 10px 14px; gap: 10px; border-bottom: 1px dashed rgba(180,140,160,0.1); font-size: 13px; }
+.import-preview-row:last-child { border-bottom: none; }
+.ipr-date { font-size: 12px; color: var(--text-light); flex-shrink: 0; width: 80px; }
+.ipr-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); }
+.ipr-cat { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--primary-light); color: var(--primary-deep); flex-shrink: 0; }
+.ipr-amount { font-weight: 700; flex-shrink: 0; }
+.ipr-amount.expense { color: #E87785; }
+.ipr-amount.income { color: #4FB57E; }
+.import-summary { font-size: 13px; color: var(--text-light); text-align: center; margin: 8px 0; }
+.import-summary b { color: var(--primary-deep); }
+</style>
+</head>
+<body>
+
+<div class="paw-cursor" id="pawCursor"></div>
+<div class="paw-trail" id="pawTrail"></div>
+
+<div class="auth-page" id="authPage">
+  <div class="auth-card jelly-card">
+    <div class="brand-logo">🐾</div>
+    <h1 class="brand-title">人生的账本，有出也有入</h1>
+    <p class="brand-subtitle">用清晰的记录，换从容的消费选择权</p>
+    <div class="auth-tabs">
+      <button class="tab-btn active" data-tab="login">登录</button>
+      <button class="tab-btn" data-tab="register">注册</button>
+    </div>
+    <form class="auth-form active" id="loginForm">
+      <div class="input-wrap jelly-input"><span class="input-icon">👤</span><input type="text" id="loginUsername" placeholder="用户名" required /></div>
+      <div class="input-wrap jelly-input"><span class="input-icon">🔒</span><input type="password" id="loginPassword" placeholder="密码" required /></div>
+      <button type="submit" class="btn btn-primary jelly-btn">登 录</button>
+    </form>
+    <form class="auth-form" id="registerForm">
+      <div class="input-wrap jelly-input"><span class="input-icon">👤</span><input type="text" id="regUsername" placeholder="用户名" required /></div>
+      <div class="input-wrap jelly-input"><span class="input-icon">🔒</span><input type="password" id="regPassword" placeholder="密码（至少6位）" required minlength="6" /></div>
+      <div class="input-wrap jelly-input"><span class="input-icon">🌸</span><label>选择主题色</label>
+        <div class="color-picker">
+          <div class="color-dot" style="--c:#FFB5BA" data-color="pink"></div>
+          <div class="color-dot" style="--c:#B5DEFF" data-color="blue"></div>
+          <div class="color-dot" style="--c:#C9F0C5" data-color="green"></div>
+          <div class="color-dot" style="--c:#FFE4B5" data-color="orange"></div>
+          <div class="color-dot" style="--c:#E4C9F0" data-color="purple"></div>
+          <div class="color-dot" style="--c:#FFD6E8" data-color="peach"></div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary jelly-btn">注 册</button>
+    </form>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none;">
+  <header class="mobile-header">
+    <button class="menu-btn" id="menuBtn">☰</button>
+    <div class="mobile-title"><div class="brand-title-mini">人生的账本</div><div class="ledger-name" id="mobileLedgerName">我的账本</div></div>
+    <div class="header-actions"><button class="icon-btn" id="themeBtn" title="切换主题">🎨</button><button class="icon-btn" id="logoutBtn" title="退出">🚪</button></div>
+  </header>
+  <div class="app-body">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header"><div class="paw-logo">🐾</div><div><div class="sidebar-title">人生的账本</div><div class="sidebar-ledger" id="sidebarLedgerName">我的账本</div></div></div>
+      <nav class="nav-list">
+        <div class="nav-item active" data-page="record"><span class="nav-icon">✍️</span><span class="nav-label">记一笔</span></div>
+        <div class="nav-item" data-page="category"><span class="nav-icon">📂</span><span class="nav-label">类目管理</span></div>
+        <div class="nav-item" data-page="stats"><span class="nav-icon">📊</span><span class="nav-label">统计</span></div>
+        <div class="nav-item" data-page="switch"><span class="nav-icon">🔄</span><span class="nav-label">切换账本</span></div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info jelly-card-mini"><div class="avatar" id="userAvatar">👤</div><div><div class="username" id="userName">用户</div><div class="user-role" id="userRole">拥有者</div></div></div>
+        <div class="theme-switcher"><div class="theme-title">界面颜色</div>
+          <div class="color-picker">
+            <div class="color-dot" style="--c:#FFB5BA" data-color="pink"></div>
+            <div class="color-dot" style="--c:#B5DEFF" data-color="blue"></div>
+            <div class="color-dot" style="--c:#C9F0C5" data-color="green"></div>
+            <div class="color-dot" style="--c:#FFE4B5" data-color="orange"></div>
+            <div class="color-dot" style="--c:#E4C9F0" data-color="purple"></div>
+            <div class="color-dot" style="--c:#FFD6E8" data-color="peach"></div>
+          </div>
+        </div>
+        <button class="btn btn-ghost jelly-btn" id="logoutBtn2">退出登录</button>
+      </div>
+    </aside>
+    <div class="sidebar-mask" id="sidebarMask"></div>
+    <main class="main-content">
+      <section class="page active" data-page="record">
+        <div class="section overview-section">
+          <h2 class="section-title"><span class="title-icon">📌</span> 总概况</h2>
+          <div class="overview-grid">
+            <div class="overview-card jelly-card income-card"><div class="ov-label">本月收入</div><div class="ov-amount" id="monthIncome">¥0.00</div><div class="ov-ico">💰</div></div>
+            <div class="overview-card jelly-card expense-card"><div class="ov-label">本月支出</div><div class="ov-amount" id="monthExpense">¥0.00</div><div class="ov-ico">🛒</div></div>
+            <div class="overview-card jelly-card balance-card"><div class="ov-label">本月结余</div><div class="ov-amount" id="monthBalance">¥0.00</div><div class="ov-ico">🌈</div></div>
+            <div class="overview-card jelly-card total-card"><div class="ov-label">账本总额</div><div class="ov-amount" id="totalBalance">¥0.00</div><div class="ov-ico">🐾</div></div>
+          </div>
+        </div>
+        <div class="section record-section">
+          <h2 class="section-title"><span class="title-icon">✍️</span> 记一笔</h2>
+          <div class="record-form jelly-card">
+            <div class="type-switch"><button class="type-btn active" data-type="expense">支出</button><button class="type-btn" data-type="income">收入</button></div>
+            <div class="form-row"><div class="input-wrap jelly-input amount-input"><span class="amount-sign">¥</span><input type="number" id="recordAmount" placeholder="0.00" step="0.01" min="0" /></div></div>
+            <div class="form-row"><div class="input-wrap jelly-input"><span class="input-icon">📅</span><input type="date" id="recordDate" /></div></div>
+            <div class="form-row"><label class="row-label">选择类目</label><div class="category-grid" id="recordCategoryGrid"></div></div>
+            <div class="form-row"><div class="input-wrap jelly-input"><span class="input-icon">📝</span><input type="text" id="recordNote" placeholder="备注（选填）" /></div></div>
+            <div class="form-row" id="recordMemberWrap"><label class="row-label">记录人</label><div class="member-select" id="recordMemberSelect"></div></div>
+            <button class="btn btn-primary jelly-btn btn-block" id="submitRecord">✨ 保存记录</button>
+          </div>
+        </div>
+        <div class="section detail-section">
+          <div class="section-header"><h2 class="section-title"><span class="title-icon">📋</span> 明细</h2><div class="filter-wrap"><button class="btn btn-ghost jelly-btn import-btn" id="importBtn">📥 导入账单</button><select class="filter-select jelly-input" id="detailFilterType"><option value="all">全部</option><option value="expense">支出</option><option value="income">收入</option></select></div></div>
+          <div class="detail-list jelly-card" id="detailList"><div class="empty-state"><div class="empty-ico">🌱</div><div class="empty-text">还没有记录，快去记一笔吧~</div></div></div>
+        </div>
+      </section>
+      <section class="page" data-page="category">
+        <div class="section">
+          <div class="section-header"><h2 class="section-title"><span class="title-icon">📂</span> 类目管理</h2></div>
+          <div class="category-manage jelly-card">
+            <div class="cat-tabs"><button class="cat-tab active" data-ctype="expense">支出类目</button><button class="cat-tab" data-ctype="income">收入类目</button></div>
+            <div class="add-cat-row"><input type="text" id="newCatName" placeholder="新类目名称" class="jelly-input" /><input type="text" id="newCatIcon" placeholder="图标（如 🛒）" class="jelly-input cat-icon-input" /><button class="btn btn-primary jelly-btn" id="addCategoryBtn">+ 添加</button></div>
+            <div class="cat-list" id="catList"></div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-header"><h2 class="section-title"><span class="title-icon">👨‍👩‍👧‍👦</span> 邀请成员</h2></div>
+          <div class="members-section jelly-card">
+            <div class="permission-note">💡 只有拥有者/管理员才可以邀请成员、管理类目</div>
+            <div class="member-list" id="memberList"></div>
+            <div class="invite-row"><input type="text" id="inviteUsername" placeholder="输入对方用户名邀请加入" class="jelly-input invite-input" /><select class="jelly-input role-select" id="inviteRole"><option value="viewer">查看者</option><option value="editor">编辑者</option><option value="admin">管理员</option></select><button class="btn btn-primary jelly-btn" id="inviteMemberBtn">🎈 邀请</button></div>
+            <div class="share-link-row"><div class="share-title">🔗 分享账本</div><div class="link-box"><input type="text" id="shareLink" readonly class="jelly-input" /><button class="btn btn-ghost jelly-btn" id="copyLinkBtn">复制</button></div></div>
+          </div>
+        </div>
+      </section>
+      <section class="page" data-page="stats">
+        <div class="section overview-section">
+          <h2 class="section-title"><span class="title-icon">📌</span> 总概况</h2>
+          <div class="overview-grid">
+            <div class="overview-card jelly-card income-card"><div class="ov-label">本月收入</div><div class="ov-amount" id="monthIncome2">¥0.00</div><div class="ov-ico">💰</div></div>
+            <div class="overview-card jelly-card expense-card"><div class="ov-label">本月支出</div><div class="ov-amount" id="monthExpense2">¥0.00</div><div class="ov-ico">🛒</div></div>
+            <div class="overview-card jelly-card balance-card"><div class="ov-label">本月结余</div><div class="ov-amount" id="monthBalance2">¥0.00</div><div class="ov-ico">🌈</div></div>
+            <div class="overview-card jelly-card total-card"><div class="ov-label">账本总额</div><div class="ov-amount" id="totalBalance2">¥0.00</div><div class="ov-ico">🐾</div></div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="section-header"><h2 class="section-title"><span class="title-icon">📊</span> 月度收支统计</h2><select class="filter-select jelly-input" id="statsMonth"></select></div>
+          <div class="stats-grid">
+            <div class="stats-panel jelly-card"><h3 class="stats-title">支出类目占比</h3><div class="pie-wrap"><canvas id="pieExpense" width="260" height="260"></canvas></div><div class="legend-list" id="expenseLegend"></div></div>
+            <div class="stats-panel jelly-card"><h3 class="stats-title">收入类目占比</h3><div class="pie-wrap"><canvas id="pieIncome" width="260" height="260"></canvas></div><div class="legend-list" id="incomeLegend"></div></div>
+            <div class="stats-panel jelly-card wide-panel"><h3 class="stats-title">近6个月收支趋势</h3><div class="bar-wrap"><canvas id="barTrend" width="720" height="260"></canvas></div></div>
+            <div class="stats-panel jelly-card wide-panel"><h3 class="stats-title">成员贡献</h3><div id="memberStatsList" class="member-stats"></div></div>
+          </div>
+        </div>
+      </section>
+      <section class="page" data-page="switch">
+        <div class="section">
+          <div class="section-header"><h2 class="section-title"><span class="title-icon">🔄</span> 我的账本</h2><button class="btn btn-primary jelly-btn" id="newLedgerBtn">+ 新建账本</button></div>
+          <div class="ledger-grid" id="ledgerGrid"></div>
+        </div>
+        <div class="section"><h2 class="section-title"><span class="title-icon">✨</span> 共享给我的</h2><div class="ledger-grid" id="sharedGrid"></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal-mask" id="newLedgerModal" style="display:none;">
+  <div class="modal jelly-card">
+    <div class="modal-title">🎈 新建账本</div>
+    <div class="input-wrap jelly-input"><span class="input-icon">📒</span><input type="text" id="newLedgerName" placeholder="账本名称，如：家庭账本" /></div>
+    <div class="input-wrap jelly-input"><span class="input-icon">💫</span><input type="text" id="newLedgerDesc" placeholder="描述（选填）" /></div>
+    <div class="modal-actions"><button class="btn btn-ghost jelly-btn" id="cancelNewLedger">取消</button><button class="btn btn-primary jelly-btn" id="confirmNewLedger">创建</button></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="importModal" style="display:none;">
+  <div class="modal jelly-card" style="max-width:480px;">
+    <div class="modal-title">📥 导入账单</div>
+    <div class="import-tabs">
+      <button class="import-tab active" data-source="alipay">支付宝账单</button>
+      <button class="import-tab" data-source="wechat">微信账单</button>
+    </div>
+    <div class="import-info">从支付宝/微信导出 CSV 账单文件后，在此处上传导入。<br>系统会自动匹配类目，导入后可逐条修改。</div>
+    <div class="import-dropzone" id="importDropzone">
+      <div class="dz-icon">📂</div>
+      <div class="dz-text">点击选择 CSV 文件</div>
+      <div class="dz-hint">支持支付宝 / 微信导出的 .csv 格式</div>
+      <input type="file" id="importFile" accept=".csv,text/csv" style="display:none;" />
+    </div>
+    <div id="importPreviewWrap" class="import-preview-wrap" style="display:none;"></div>
+    <div id="importSummary" class="import-summary" style="display:none;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost jelly-btn" id="cancelImport">取消</button>
+      <button class="btn btn-primary jelly-btn" id="confirmImport" disabled>确认导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+  const API_BASE = ''; // 部署时改为后端地址
+  const TOKEN_KEY = 'ledger_token';
+  const CUR_LEDGER_KEY = 'ledger_cur_ledger';
+
+  async function api(path, options = {}) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    try {
+      const res = await fetch(API_BASE + path, {
+        method: options.method || 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
+        },
+        body: options.body ? JSON.stringify(options.body) : undefined,
+      });
+      if (res.status === 401) {
+        localStorage.removeItem(TOKEN_KEY);
+        State.currentUser = null;
+        State.currentLedger = null;
+        State.currentLedgerId = null;
+        State.ledgers = [];
+        State.myRole = null;
+        showAuthPage();
+        return { ok: false, msg: '登录已过期，请重新登录' };
+      }
+      return await res.json();
+    } catch (e) {
+      console.error('API error:', e);
+      return { ok: false, msg: '网络错误，请检查网络连接' };
+    }
+  }
+
+  const State = {
+    currentUser: null,
+    currentLedgerId: null,
+    currentLedger: null,  // 缓存当前账本完整数据（含records）
+    ledgers: [],          // 缓存用户所有账本列表
+    myRole: null,         // 当前用户在当前账本的角色
+    recordType: 'expense',
+    selectedCategory: null,
+    selectedMember: null,
+    catTab: 'expense',
+    page: 'record',
+    loading: false
+  };
+
+  function toast(msg, ms = 2000) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), ms); }
+  function fmt(n) { const v = Number(n) || 0; return '¥' + v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function todayStr() { return new Date().toISOString().slice(0, 10); }
+  function parseYM(s) { return s.slice(0, 7); }
+  function monthOf(d) { const dt = (d instanceof Date) ? d : new Date(d); return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0'); }
+  function findUser(u) {
+    for (const l of State.ledgers) {
+      const m = (l.members || []).find(x => x.username === u);
+      if (m) return { username: m.username, avatar: m.avatar, theme: m.theme };
+    }
+    if (State.currentLedger) {
+      const m = (State.currentLedger.members || []).find(x => x.username === u);
+      if (m) return { username: m.username, avatar: m.avatar, theme: m.theme };
+    }
+    return null;
+  }
+  async function registerUser(username, password, theme) {
+    const result = await api('/api/register', { method: 'POST', body: { username, password, theme } });
+    if (result.ok) {
+      localStorage.setItem(TOKEN_KEY, result.token);
+    }
+    return result;
+  }
+  async function loginUser(username, password) {
+    const result = await api('/api/login', { method: 'POST', body: { username, password } });
+    if (result.ok) {
+      localStorage.setItem(TOKEN_KEY, result.token);
+    }
+    return result;
+  }
+  async function logoutUser() {
+    await api('/api/logout', { method: 'POST' });
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(CUR_LEDGER_KEY);
+    State.currentUser = null;
+    State.currentLedgerId = null;
+    State.currentLedger = null;
+    State.ledgers = [];
+    State.myRole = null;
+    showAuthPage();
+    toast('已退出登录');
+  }
+  function getUserLedgers() { return State.ledgers; }
+  function getOwnedLedgers() { return State.ledgers.filter(l => l.owner === State.currentUser.username); }
+  function getSharedLedgers() { return State.ledgers.filter(l => l.owner !== State.currentUser.username); }
+  function getLedger(lid) {
+    if (State.currentLedger && State.currentLedger.id === lid) return State.currentLedger;
+    return State.ledgers.find(l => l.id === lid);
+  }
+  function ledger() { return State.currentLedger || { name: '账本', categories: { expense: [], income: [] }, members: [] }; }
+  async function createLedger(name, desc) {
+    const result = await api('/api/ledgers', { method: 'POST', body: { name, desc } });
+    if (result.ok) {
+      await fetchLedgers();
+      return result.ledgerId;
+    }
+    toast(result.msg || '创建账本失败');
+    return null;
+  }
+  async function switchLedger(lid) {
+    if (!State.currentUser) return;
+    localStorage.setItem(CUR_LEDGER_KEY, lid);
+    State.currentLedgerId = lid;
+    State.selectedCategory = null;
+    State.selectedMember = null;
+    await fetchLedger(lid);
+    document.getElementById('sidebarLedgerName').textContent = ledger().name;
+    document.getElementById('mobileLedgerName').textContent = ledger().name;
+    refreshPageData();
+    toast('已切换到：' + ledger().name);
+  }
+  const ROLE_WEIGHT = { owner: 3, admin: 2, editor: 1, viewer: 0 };
+  function roleOf(lid, u) { const l = getLedger(lid); if (!l) return null; const m = (l.members || []).find(m => m.username === u); return m ? m.role : null; }
+  function canEdit(lid, u) { return ROLE_WEIGHT[roleOf(lid, u) || 'viewer'] >= 1; }
+  function canManage(lid, u) { return ROLE_WEIGHT[roleOf(lid, u) || 'viewer'] >= 2; }
+  function getLedgerRecords(lid) {
+    const recs = (State.currentLedger && State.currentLedger.records) || [];
+    return recs.slice().sort((a, b) => { if (a.date !== b.date) return a.date < b.date ? 1 : -1; return (b.createdAt || 0) - (a.createdAt || 0); });
+  }
+  async function addRecord(data) {
+    if (!canEdit(State.currentLedgerId, State.currentUser.username)) { toast('暂无编辑权限'); return false; }
+    const result = await api('/api/ledgers/' + State.currentLedgerId + '/records', { method: 'POST', body: data });
+    if (result.ok) { await refreshLedger(); return true; }
+    toast(result.msg || '记录失败');
+    return false;
+  }
+  async function removeRecord(rid) {
+    const result = await api('/api/ledgers/' + State.currentLedgerId + '/records/' + rid, { method: 'DELETE' });
+    if (result.ok) { await refreshLedger(); return true; }
+    toast(result.msg || '删除失败');
+    return false;
+  }
+  async function addCategory(ctype, name, icon) {
+    if (!canManage(State.currentLedgerId, State.currentUser.username)) { toast('只有管理员可以管理类目'); return false; }
+    const result = await api('/api/ledgers/' + State.currentLedgerId + '/categories', { method: 'POST', body: { type: ctype, name, icon } });
+    if (result.ok) { await refreshLedger(); return true; }
+    toast(result.msg || '添加失败');
+    return false;
+  }
+  async function removeCategory(ctype, cid) {
+    if (!canManage(State.currentLedgerId, State.currentUser.username)) { toast('只有管理员可以管理类目'); return false; }
+    const result = await api('/api/ledgers/' + State.currentLedgerId + '/categories/' + cid, { method: 'DELETE' });
+    if (result.ok) { await refreshLedger(); return true; }
+    toast(result.msg || '删除失败');
+    return false;
+  }
+  function findCat(ctype, cid) { const l = ledger(); const list = (l.categories && l.categories[ctype]) || []; return list.find(c => c.id === cid); }
+  async function inviteMember(targetUser, role) {
+    if (!canManage(State.currentLedgerId, State.currentUser.username)) { toast('只有管理员可以邀请成员'); return false; }
+    const result = await api('/api/ledgers/' + State.currentLedgerId + '/invite', { method: 'POST', body: { username: targetUser, role } });
+    if (result.ok) { await refreshLedger(); return true; }
+    toast(result.msg || '邀请失败');
+    return false;
+  }
+  async function removeMember(username) {
+    if (!canManage(State.currentLedgerId, State.currentUser.username)) { toast('只有管理员可以移除成员'); return false; }
+    if (username === State.currentUser.username && roleOf(State.currentLedgerId, username) === 'owner') { toast('拥有者不能退出自己的账本'); return false; }
+    const result = await api('/api/ledgers/' + State.currentLedgerId + '/members/' + encodeURIComponent(username), { method: 'DELETE' });
+    if (result.ok) { await refreshLedger(); return true; }
+    toast(result.msg || '移除失败');
+    return false;
+  }
+  function applyTheme(name) {
+    const valid = ['pink','blue','green','orange','purple','peach'];
+    const theme = valid.includes(name) ? name : 'pink';
+    document.body.setAttribute('data-theme', theme);
+    if (State.currentUser) {
+      State.currentUser.theme = theme;
+      api('/api/user/theme', { method: 'PATCH', body: { theme } });
+    }
+    document.querySelectorAll('.color-dot').forEach(d => { d.classList.toggle('selected', d.dataset.color === theme); });
+  }
+  async function fetchLedgers() {
+    const result = await api('/api/ledgers');
+    if (result.ok) State.ledgers = result.ledgers;
+    return result;
+  }
+  async function fetchLedger(lid) {
+    const result = await api('/api/ledgers/' + lid);
+    if (result.ok) {
+      State.currentLedger = result.ledger;
+      State.currentLedgerId = lid;
+      State.myRole = result.myRole;
+    }
+    return result;
+  }
+  async function refreshLedger() {
+    if (State.currentLedgerId) {
+      await fetchLedger(State.currentLedgerId);
+      await fetchLedgers();
+    }
+  }
+  function switchPage(page) {
+    State.page = page;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+    document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.dataset.page === page));
+    if (page === 'stats') setTimeout(drawStats, 80);
+    if (page === 'switch') renderLedgerList();
+    if (page === 'category') renderCategoryManage();
+    if (page === 'record') { renderCategoryGrid(); renderDetailList(); renderOverview(); renderMemberSelect(); }
+    document.getElementById('sidebar').classList.remove('show');
+    document.getElementById('sidebarMask').classList.remove('show');
+    document.querySelector('.main-content')?.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function renderOverview() {
+    const records = getLedgerRecords(State.currentLedgerId); const curMonth = monthOf(new Date());
+    let mIn = 0, mOut = 0, total = 0;
+    records.forEach(r => { if (r.type === 'income') { total += Number(r.amount); if (parseYM(r.date) === curMonth) mIn += Number(r.amount); } else { total -= Number(r.amount); if (parseYM(r.date) === curMonth) mOut += Number(r.amount); } });
+    const sv = (id, v) => document.getElementById(id).textContent = fmt(v);
+    sv('monthIncome', mIn); sv('monthExpense', mOut); sv('monthBalance', mIn - mOut); sv('totalBalance', total);
+    sv('monthIncome2', mIn); sv('monthExpense2', mOut); sv('monthBalance2', mIn - mOut); sv('totalBalance2', total);
+  }
+  function renderCategoryGrid() { const grid = document.getElementById('recordCategoryGrid'); if (!grid) return; const l = ledger(); const list = (l.categories && l.categories[State.recordType]) || []; if (!State.selectedCategory && list[0]) State.selectedCategory = list[0].id; grid.innerHTML = list.map(c => `<div class="cat-item ${State.selectedCategory === c.id ? 'selected' : ''}" data-cid="${c.id}"><div class="cat-icon">${c.icon || '📌'}</div><div class="cat-name">${c.name}</div></div>`).join(''); grid.querySelectorAll('.cat-item').forEach(it => it.addEventListener('click', () => { State.selectedCategory = it.dataset.cid; grid.querySelectorAll('.cat-item').forEach(x => x.classList.remove('selected')); it.classList.add('selected'); })); }
+  function renderMemberSelect() { const wrap = document.getElementById('recordMemberSelect'); if (!wrap) return; const l = ledger(); const members = l.members || []; if (!State.selectedMember) State.selectedMember = State.currentUser.username; wrap.innerHTML = members.map(m => { const u = findUser(m.username) || { avatar: '👤' }; return `<div class="member-chip ${State.selectedMember === m.username ? 'selected' : ''}" data-u="${m.username}"><span class="m-avatar">${u.avatar}</span>${m.username}</div>`; }).join(''); wrap.querySelectorAll('.member-chip').forEach(ch => ch.addEventListener('click', () => { State.selectedMember = ch.dataset.u; wrap.querySelectorAll('.member-chip').forEach(x => x.classList.remove('selected')); ch.classList.add('selected'); })); }
+  function escapeHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+  function renderDetailList() {
+    const list = document.getElementById('detailList'); if (!list) return;
+    const filterType = document.getElementById('detailFilterType').value;
+    let records = getLedgerRecords(State.currentLedgerId);
+    if (filterType !== 'all') records = records.filter(r => r.type === filterType);
+    if (records.length === 0) { list.innerHTML = `<div class="empty-state"><div class="empty-ico">🌱</div><div class="empty-text">还没有记录，快去记一笔吧~</div></div>`; return; }
+    const groups = {};
+    records.forEach(r => { if (!groups[r.date]) groups[r.date] = { income: 0, expense: 0, items: [] }; const g = groups[r.date]; if (r.type === 'income') g.income += Number(r.amount); else g.expense += Number(r.amount); g.items.push(r); });
+    const dates = Object.keys(groups).sort((a, b) => a < b ? 1 : -1);
+    const canDel = canEdit(State.currentLedgerId, State.currentUser.username);
+    let html = '';
+    dates.forEach(d => { const g = groups[d]; html += `<div class="detail-date-group"><div class="detail-date">${d}</div><div class="detail-date-summary">收入 ${fmt(g.income)} · 支出 ${fmt(g.expense)} · 结余 ${fmt(g.income - g.expense)}</div></div>`; g.items.forEach(r => { const cat = findCat(r.type, r.catId) || { icon: '📌', name: '其他' }; const isMe = r.member === State.currentUser.username; html += `<div class="detail-item"><div class="d-caticon">${cat.icon}</div><div class="d-main"><div class="d-catname">${cat.name}</div>${r.note ? `<div class="d-note">${escapeHtml(r.note)}</div>` : ''}<span class="d-member">${isMe ? '我' : escapeHtml(r.member)}</span></div><div class="d-amount ${r.type}">${r.type === 'income' ? '+' : '-'}${fmt(r.amount)}</div>${canDel ? `<button class="d-del" data-rid="${r.id}" title="删除">🗑️</button>` : ''}</div>`; }); });
+    list.innerHTML = html;
+    list.querySelectorAll('.d-del').forEach(b => b.addEventListener('click', async (e) => { e.stopPropagation(); if (confirm('确定删除这条记录吗？')) { if (await removeRecord(b.dataset.rid)) { toast('已删除'); refreshPageData(); } } }));
+  }
+  function renderCategoryManage() {
+    const canMgmt = canManage(State.currentLedgerId, State.currentUser.username);
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.ctype === State.catTab));
+    const l = ledger(); const list = (l.categories && l.categories[State.catTab]) || [];
+    const container = document.getElementById('catList');
+    container.innerHTML = list.map(c => `<div class="cat-manage-item">${canMgmt ? `<button class="mdel" data-cid="${c.id}">✕</button>` : ''}<div class="mi">${c.icon || '📌'}</div><div class="mn">${escapeHtml(c.name)}</div></div>`).join('');
+    container.querySelectorAll('.mdel').forEach(b => b.addEventListener('click', async () => { if (confirm('删除该类目？已有记录将变为【其他】')) { if (await removeCategory(State.catTab, b.dataset.cid)) { toast('已删除'); renderCategoryManage(); if (State.page === 'record') renderCategoryGrid(); } } }));
+    renderMembersList();
+    const linkInput = document.getElementById('shareLink');
+    if (linkInput) linkInput.placeholder = '点击右侧按钮生成邀请链接';
+  }
+  function renderMembersList() {
+    const box = document.getElementById('memberList'); if (!box) return;
+    const l = ledger(); const canMgmt = canManage(State.currentLedgerId, State.currentUser.username);
+    box.innerHTML = (l.members || []).map(m => { const u = findUser(m.username) || { avatar: '👤' }; const isOwner = m.role === 'owner'; const canRm = canMgmt && !isOwner; return `<div class="member-row"><div class="mb-avatar">${u.avatar}</div><div class="mb-info"><div class="mb-name">${escapeHtml(m.username)}${m.username === State.currentUser.username ? ' （我）' : ''}</div><div class="mb-sub">加入于 ${new Date(m.joinedAt || Date.now()).toLocaleDateString()}</div></div><div class="mb-role ${m.role}">${roleLabel(m.role)}</div>${canRm ? `<button class="mb-remove" data-u="${m.username}">✕</button>` : ''}</div>`; }).join('');
+    box.querySelectorAll('.mb-remove').forEach(b => b.addEventListener('click', async () => { if (confirm('移除该成员？')) { if (await removeMember(b.dataset.u)) { toast('已移除'); renderMembersList(); renderMemberSelect(); } } }));
+  }
+  function roleLabel(r) { return { owner: '拥有者', admin: '管理员', editor: '编辑者', viewer: '查看者' }[r] || '成员'; }
+  function renderLedgerList() {
+    const ownedBox = document.getElementById('ledgerGrid'); const sharedBox = document.getElementById('sharedGrid');
+    const my = getOwnedLedgers(); const shared = getSharedLedgers();
+    ownedBox.innerHTML = my.length ? my.map(l => ledgerCardHtml(l, l.id === State.currentLedgerId)).join('') : emptyLedger();
+    sharedBox.innerHTML = shared.length ? shared.map(l => ledgerCardHtml(l, l.id === State.currentLedgerId)).join('') : emptyLedger('还没有共享账本');
+    ownedBox.querySelectorAll('.ledger-card').forEach(c => c.addEventListener('click', () => switchLedger(c.dataset.lid)));
+    sharedBox.querySelectorAll('.ledger-card').forEach(c => c.addEventListener('click', () => switchLedger(c.dataset.lid)));
+  }
+  function emptyLedger(msg) { return `<div class="jelly-card" style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-light);"><div style="font-size:40px;margin-bottom:8px;">📒</div><div>${msg || '还没有账本，点右上角创建一个吧~'}</div></div>`; }
+  function ledgerCardHtml(l, isCurrent) {
+    const income = Number(l.totalIncome) || 0; const expense = Number(l.totalExpense) || 0;
+    const balance = income - expense; const recordCount = Number(l.recordCount) || 0; const members = (l.members || []).slice(0, 5);
+    return `<div class="ledger-card jelly-card ${isCurrent ? 'current' : ''}" data-lid="${l.id}"><div class="lg-head"><div class="lg-ico">📒</div><div style="flex:1;min-width:0;"><div class="lg-name">${escapeHtml(l.name)}</div><div class="lg-desc">${escapeHtml(l.desc || '共 ' + recordCount + ' 条记录')}</div></div>${isCurrent ? '<div style="font-size:12px;padding:2px 8px;border-radius:999px;background:var(--primary);color:#fff;font-weight:700;">当前</div>' : ''}</div><div class="lg-stats"><div class="lg-stat"><div class="lbl">收入</div><div class="val" style="color:#4FB57E;">${fmt(income)}</div></div><div class="lg-stat"><div class="lbl">支出</div><div class="val" style="color:#E87785;">${fmt(expense)}</div></div><div class="lg-stat"><div class="lbl">结余</div><div class="val">${fmt(balance)}</div></div></div><div class="lg-members">${members.map(m => { const u = findUser(m.username) || { avatar: '👤' }; return `<div class="lg-m" title="${escapeHtml(m.username)} (${roleLabel(m.role)})">${u.avatar}</div>`; }).join('')}${l.members.length > 5 ? `<div class="lg-m" style="background:#eee;color:#888;">+${l.members.length - 5}</div>` : ''}</div></div>`;
+  }
+  function initStatsMonth() { const sel = document.getElementById('statsMonth'); if (!sel) return; const records = getLedgerRecords(State.currentLedgerId); const set = new Set(); records.forEach(r => set.add(parseYM(r.date))); const cur = monthOf(new Date()); set.add(cur); const months = Array.from(set).sort((a, b) => a < b ? 1 : -1).slice(0, 12); sel.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join(''); sel.value = cur; sel.onchange = drawStats; }
+  function drawStats() {
+    const sel = document.getElementById('statsMonth'); const ym = sel ? sel.value : monthOf(new Date());
+    const records = getLedgerRecords(State.currentLedgerId).filter(r => parseYM(r.date) === ym);
+    const expenseMap = new Map(); const incomeMap = new Map();
+    records.forEach(r => { const cat = findCat(r.type, r.catId); const name = cat ? cat.name : '其他'; const map = r.type === 'expense' ? expenseMap : incomeMap; map.set(name, (map.get(name) || 0) + Number(r.amount)); });
+    drawPie('pieExpense', expenseMap, ['#FFB5BA','#FF9AA2','#FFD6BA','#FFE4B5','#FFF3B5','#E4C9F0','#B5DEFF','#B5F0E8','#FFD6E8','#C9F0C5']);
+    drawPie('pieIncome', incomeMap, ['#BEE8C8','#8FD5A0','#C9F0C5','#B5F0E8','#B5DEFF','#B5E3F0','#FFE4B5','#E4C9F0']);
+    renderLegend('expenseLegend', expenseMap); renderLegend('incomeLegend', incomeMap);
+    drawTrend(); drawMemberStats(ym);
+  }
+  function drawPie(canvasId, map, colors) {
+    const canvas = document.getElementById(canvasId); if (!canvas) return;
+    const ctx = canvas.getContext('2d'); const W = canvas.width, H = canvas.height; ctx.clearRect(0, 0, W, H);
+    const cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2 - 14, r = R * 0.55;
+    const entries = Array.from(map.entries()).sort((a, b) => b[1] - a[1]); const total = entries.reduce((s, e) => s + e[1], 0);
+    if (total <= 0) { ctx.fillStyle = '#F0ECF3'; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#B5B5C9'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('暂无数据', cx, cy); return; }
+    let angle = -Math.PI / 2;
+    entries.forEach((e, i) => { const p = e[1] / total; const a2 = angle + p * Math.PI * 2; const grad = ctx.createRadialGradient(cx, cy, r, cx, cy, R); const c = colors[i % colors.length]; grad.addColorStop(0, lightenColor(c, 20)); grad.addColorStop(1, c); ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, angle, a2); ctx.closePath(); ctx.fillStyle = grad; ctx.fill(); ctx.beginPath(); ctx.arc(cx, cy, R, angle, a2); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.stroke(); angle = a2; });
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.shadowColor = 'rgba(0,0,0,0.08)'; ctx.shadowBlur = 10; ctx.fill(); ctx.restore();
+    ctx.fillStyle = '#8E8EA3'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('总计', cx, cy - 6);
+    ctx.fillStyle = '#4A4A5C'; ctx.font = 'bold 18px sans-serif'; ctx.fillText('¥' + total.toFixed(0), cx, cy + 14);
+  }
+  function renderLegend(id, map) {
+    const box = document.getElementById(id); if (!box) return;
+    const entries = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+    const colors = ['#FFB5BA','#FF9AA2','#FFD6BA','#FFE4B5','#FFF3B5','#E4C9F0','#B5DEFF','#B5F0E8'];
+    if (entries.length === 0) { box.innerHTML = '<div style="color:var(--text-light);font-size:13px;text-align:center;">暂无数据</div>'; return; }
+    const total = entries.reduce((s, e) => s + e[1], 0);
+    box.innerHTML = entries.map((e, i) => `<div class="legend-item"><div class="legend-color" style="background:${colors[i % colors.length]}"></div><span>${escapeHtml(e[0])}</span><span class="legend-amount">${fmt(e[1])} <span style="color:var(--text-light);font-weight:400;">(${(e[1] / total * 100).toFixed(0)}%)</span></span></div>`).join('');
+  }
+  function drawTrend() {
+    const canvas = document.getElementById('barTrend'); if (!canvas) return;
+    const ctx = canvas.getContext('2d'); const W = canvas.width, H = canvas.height; ctx.clearRect(0, 0, W, H);
+    const months = []; const now = new Date();
+    for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); months.push(monthOf(d)); }
+    const records = getLedgerRecords(State.currentLedgerId);
+    const incomeArr = months.map(() => 0); const expenseArr = months.map(() => 0);
+    records.forEach(r => { const ym = parseYM(r.date); const i = months.indexOf(ym); if (i >= 0) { if (r.type === 'income') incomeArr[i] += Number(r.amount); else expenseArr[i] += Number(r.amount); } });
+    const max = Math.max(1, ...incomeArr, ...expenseArr);
+    const pad = { l: 48, r: 20, t: 20, b: 44 }; const chartW = W - pad.l - pad.r; const chartH = H - pad.t - pad.b;
+    const groupW = chartW / months.length; const barW = Math.min(22, groupW * 0.32); const gap = 6;
+    ctx.strokeStyle = 'rgba(180,140,160,0.12)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) { const y = pad.t + chartH - (chartH * i / 4); ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke(); ctx.fillStyle = '#B5B5C9'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right'; ctx.fillText(((max * i / 4) | 0), pad.l - 8, y + 3); }
+    months.forEach((m, i) => { const cx = pad.l + groupW * i + groupW / 2; const h1 = incomeArr[i] / max * chartH; const h2 = expenseArr[i] / max * chartH; drawJellyBar(ctx, cx - barW - gap / 2, pad.t + chartH - h1, barW, h1, ['#C9F0C5', '#7ED6A5']); drawJellyBar(ctx, cx + gap / 2, pad.t + chartH - h2, barW, h2, ['#FFB5BA', '#FF8FA0']); ctx.fillStyle = '#8E8EA3'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(m.slice(5) + '月', cx, H - pad.b + 18); });
+    const lx = W - 160, ly = 6; ctx.fillStyle = '#7ED6A5'; ctx.fillRect(lx, ly, 12, 12); ctx.fillStyle = '#4A4A5C'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left'; ctx.fillText('收入', lx + 18, ly + 11); ctx.fillStyle = '#FF8FA0'; ctx.fillRect(lx + 70, ly, 12, 12); ctx.fillStyle = '#4A4A5C'; ctx.fillText('支出', lx + 88, ly + 11);
+  }
+  function drawJellyBar(ctx, x, y, w, h, colors) { if (h <= 0.5) return; const r = Math.min(w / 2, 10); ctx.save(); ctx.shadowColor = colors[1] + '55'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 3; const grad = ctx.createLinearGradient(x, y, x, y + h); grad.addColorStop(0, colors[0]); grad.addColorStop(1, colors[1]); ctx.fillStyle = grad; roundRect(ctx, x, y, w, h, r); ctx.fill(); ctx.restore(); ctx.save(); ctx.beginPath(); roundRect(ctx, x + 3, y + 2, w - 6, Math.max(6, h * 0.32), r - 2); ctx.clip(); const hg = ctx.createLinearGradient(0, y, 0, y + h * 0.5); hg.addColorStop(0, 'rgba(255,255,255,0.75)'); hg.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = hg; ctx.fillRect(x, y, w, h * 0.5); ctx.restore(); }
+  function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath(); }
+  function drawMemberStats(ym) {
+    const box = document.getElementById('memberStatsList'); if (!box) return;
+    const l = ledger(); const records = getLedgerRecords(State.currentLedgerId).filter(r => parseYM(r.date) === ym);
+    const map = new Map(); (l.members || []).forEach(m => map.set(m.username, { income: 0, expense: 0, count: 0 }));
+    records.forEach(r => { const t = map.get(r.member); if (!t) { map.set(r.member, { income: 0, expense: 0, count: 0 }); } const o = map.get(r.member); if (r.type === 'income') o.income += Number(r.amount); else o.expense += Number(r.amount); o.count++; });
+    const arr = Array.from(map.entries()).sort((a, b) => (b[1].expense + b[1].income) - (a[1].expense + a[1].income));
+    const max = arr.reduce((s, e) => Math.max(s, e[1].expense + e[1].income), 1);
+    box.innerHTML = arr.map(([u, s]) => { const user = findUser(u) || { avatar: '👤' }; const pct = ((s.income + s.expense) / max * 100).toFixed(0); return `<div class="mstat-item"><div class="ms-avatar">${user.avatar}</div><div class="ms-info"><div class="ms-name">${escapeHtml(u)}${u === State.currentUser.username ? '（我）' : ''}</div><div class="ms-bar"><div class="ms-bar-inner" style="width:${pct}%"></div></div><div class="ms-num">收入 <span style="color:#4FB57E;font-weight:600;">${fmt(s.income)}</span> · 支出 <span style="color:#E87785;font-weight:600;">${fmt(s.expense)}</span> · ${s.count}笔</div></div></div>`; }).join('');
+  }
+  function lightenColor(hex, percent) { const num = parseInt(hex.replace('#', ''), 16); const r = Math.min(255, (num >> 16) + percent); const g = Math.min(255, ((num >> 8) & 0x00FF) + percent); const b = Math.min(255, (num & 0x0000FF) + percent); return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0'); }
+  function refreshPageData() { renderOverview(); renderCategoryGrid(); renderMemberSelect(); renderDetailList(); renderCategoryManage(); initStatsMonth(); drawStats(); renderLedgerList(); updateUserBox(); }
+  function updateUserBox() { document.getElementById('userAvatar').textContent = State.currentUser.avatar; document.getElementById('userName').textContent = State.currentUser.username; const r = roleOf(State.currentLedgerId, State.currentUser.username); document.getElementById('userRole').textContent = roleLabel(r); const editor = canEdit(State.currentLedgerId, State.currentUser.username); const submit = document.getElementById('submitRecord'); if (submit) submit.disabled = !editor; }
+  function showAuthPage() { document.getElementById('authPage').style.display = ''; document.getElementById('app').style.display = 'none'; }
+  async function showApp() {
+    document.getElementById('authPage').style.display = 'none';
+    document.getElementById('app').style.display = '';
+    applyTheme(State.currentUser.theme || 'pink');
+    if (!State.currentLedger && State.currentLedgerId) {
+      await fetchLedger(State.currentLedgerId);
+    }
+    if (!State.currentLedger && State.ledgers.length > 0) {
+      State.currentLedgerId = State.ledgers[0].id;
+      await fetchLedger(State.currentLedgerId);
+    }
+    if (!State.currentLedgerId) {
+      const result = await api('/api/ledgers', { method: 'POST', body: { name: '我的账本', desc: '生活日常开销' } });
+      if (result.ok) {
+        State.currentLedgerId = result.ledgerId;
+        await fetchLedger(result.ledgerId);
+        await fetchLedgers();
+      }
+    }
+    localStorage.setItem(CUR_LEDGER_KEY, State.currentLedgerId);
+    document.getElementById('sidebarLedgerName').textContent = ledger().name;
+    document.getElementById('mobileLedgerName').textContent = ledger().name;
+    switchPage('record');
+  }
+  function bindAuth() {
+    document.querySelectorAll('.auth-tabs .tab-btn').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.auth-tabs .tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active')); document.getElementById(btn.dataset.tab + 'Form').classList.add('active'); }));
+    document.querySelectorAll('#registerForm .color-dot').forEach(d => d.addEventListener('click', () => { document.querySelectorAll('#registerForm .color-dot').forEach(x => x.classList.remove('selected')); d.classList.add('selected'); }));
+    document.querySelector('#registerForm .color-dot[data-color="pink"]').classList.add('selected');
+    document.getElementById('regUsername').addEventListener('blur', async () => { const u = document.getElementById('regUsername').value.trim(); if (!u || u.length < 2) return; const r = await api('/api/check-username?username=' + encodeURIComponent(u)); if (r.exists) toast('用户名已存在'); });
+    document.getElementById('loginForm').addEventListener('submit', async (e) => { e.preventDefault(); const u = document.getElementById('loginUsername').value.trim(); const p = document.getElementById('loginPassword').value; const r = await loginUser(u, p); if (r.ok) { State.currentUser = r.user; toast('欢迎回来，' + u + ' 🐾'); await fetchLedgers(); let lid = localStorage.getItem(CUR_LEDGER_KEY); if (!State.ledgers.find(l => l.id === lid)) lid = State.ledgers[0]?.id; if (lid) await fetchLedger(lid); await showApp(); if (window.__afterLogin) setTimeout(window.__afterLogin, 100); } else toast(r.msg); });
+    document.getElementById('registerForm').addEventListener('submit', async (e) => { e.preventDefault(); const u = document.getElementById('regUsername').value.trim(); const p = document.getElementById('regPassword').value; if (!u || u.length < 2) return toast('用户名至少2位'); if (p.length < 6) return toast('密码至少6位'); const sel = document.querySelector('#registerForm .color-dot.selected'); const theme = sel ? sel.dataset.color : 'pink'; const r = await registerUser(u, p, theme); if (r.ok) { State.currentUser = r.user; toast('注册成功！欢迎加入 🎉'); await fetchLedgers(); if (r.defaultLedgerId) await fetchLedger(r.defaultLedgerId); await showApp(); if (window.__afterLogin) setTimeout(window.__afterLogin, 100); } else toast(r.msg); });
+  }
+  function bindAppEvents() {
+    document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', () => switchPage(n.dataset.page)));
+    document.getElementById('menuBtn').addEventListener('click', () => { document.getElementById('sidebar').classList.add('show'); document.getElementById('sidebarMask').classList.add('show'); });
+    document.getElementById('sidebarMask').addEventListener('click', () => { document.getElementById('sidebar').classList.remove('show'); document.getElementById('sidebarMask').classList.remove('show'); });
+    document.getElementById('logoutBtn').addEventListener('click', () => { if (confirm('确定退出登录？')) logoutUser(); });
+    document.getElementById('logoutBtn2').addEventListener('click', () => { if (confirm('确定退出登录？')) logoutUser(); });
+    document.getElementById('themeBtn').addEventListener('click', () => { const themes = ['pink','blue','green','orange','purple','peach']; const cur = document.body.getAttribute('data-theme') || 'pink'; applyTheme(themes[(themes.indexOf(cur) + 1) % themes.length]); });
+    document.querySelectorAll('.sidebar .color-dot').forEach(d => d.addEventListener('click', () => applyTheme(d.dataset.color)));
+    document.querySelectorAll('.type-btn').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('.type-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); State.recordType = b.dataset.type; State.selectedCategory = null; renderCategoryGrid(); }));
+    document.getElementById('recordDate').value = todayStr();
+    document.getElementById('submitRecord').addEventListener('click', async () => { const amt = parseFloat(document.getElementById('recordAmount').value); if (!amt || amt <= 0) return toast('请输入金额'); if (!State.selectedCategory) return toast('请选择类目'); const date = document.getElementById('recordDate').value || todayStr(); const note = document.getElementById('recordNote').value.trim(); const member = State.selectedMember || State.currentUser.username; const ok = await addRecord({ type: State.recordType, amount: amt.toFixed(2), date, catId: State.selectedCategory, note, member }); if (ok) { toast('记录成功 ✨'); document.getElementById('recordAmount').value = ''; document.getElementById('recordNote').value = ''; refreshPageData(); } });
+    document.getElementById('detailFilterType').addEventListener('change', renderDetailList);
+    document.querySelectorAll('.cat-tab').forEach(t => t.addEventListener('click', () => { State.catTab = t.dataset.ctype; renderCategoryManage(); }));
+    document.getElementById('addCategoryBtn').addEventListener('click', async () => { const name = document.getElementById('newCatName').value.trim(); const icon = document.getElementById('newCatIcon').value.trim() || '📌'; if (!name) return toast('请输入类目名称'); if (await addCategory(State.catTab, name, icon)) { toast('已添加'); document.getElementById('newCatName').value = ''; document.getElementById('newCatIcon').value = ''; renderCategoryManage(); if (State.page === 'record') renderCategoryGrid(); } });
+    document.getElementById('inviteMemberBtn').addEventListener('click', async () => { const u = document.getElementById('inviteUsername').value.trim(); if (!u) return toast('请输入用户名'); const role = document.getElementById('inviteRole').value; if (await inviteMember(u, role)) { toast('邀请成功！'); document.getElementById('inviteUsername').value = ''; renderMembersList(); renderMemberSelect(); } });
+    document.getElementById('copyLinkBtn').addEventListener('click', async () => { const input = document.getElementById('shareLink'); const result = await api('/api/ledgers/' + State.currentLedgerId + '/invite-link', { method: 'POST', body: { role: 'viewer' } }); if (result.ok) { const link = location.origin + location.pathname + '#invite=' + result.token; input.value = link; try { await navigator.clipboard.writeText(link); toast('链接已复制 🐾'); } catch (e) { input.select(); document.execCommand('copy'); toast('链接已复制'); } } else { toast(result.msg || '生成链接失败'); } });
+    document.getElementById('newLedgerBtn').addEventListener('click', () => { document.getElementById('newLedgerModal').style.display = ''; document.getElementById('newLedgerName').value = ''; document.getElementById('newLedgerDesc').value = ''; setTimeout(() => document.getElementById('newLedgerName').focus(), 100); });
+    document.getElementById('cancelNewLedger').addEventListener('click', () => { document.getElementById('newLedgerModal').style.display = 'none'; });
+    document.getElementById('confirmNewLedger').addEventListener('click', async () => { const name = document.getElementById('newLedgerName').value.trim(); const desc = document.getElementById('newLedgerDesc').value.trim(); if (!name) return toast('请输入账本名称'); document.getElementById('newLedgerModal').style.display = 'none'; const lid = await createLedger(name, desc); if (lid) { toast('账本创建成功！'); await switchLedger(lid); switchPage('record'); } else { toast('创建失败'); } });
+    document.getElementById('newLedgerModal').addEventListener('click', (e) => { if (e.target.id === 'newLedgerModal') e.target.style.display = 'none'; });
+  }
+  function initPawCursor() {
+    if (matchMedia('(hover: none), (pointer: coarse)').matches) return;
+    const cursor = document.getElementById('pawCursor'); const trail = document.getElementById('pawTrail');
+    let tx = window.innerWidth / 2, ty = window.innerHeight / 2, cx = tx, cy = ty;
+    document.addEventListener('mousemove', (e) => { tx = e.clientX; ty = e.clientY; });
+    function animate() { cx += (tx - cx) * 0.25; cy += (ty - cy) * 0.25; cursor.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`; trail.style.left = cx + 'px'; trail.style.top = cy + 'px'; requestAnimationFrame(animate); }
+    animate();
+    document.addEventListener('mousedown', () => cursor.classList.add('clicking'));
+    document.addEventListener('mouseup', () => cursor.classList.remove('clicking'));
+    document.addEventListener('mousemove', (() => { let last = 0; return (e) => { const n = Date.now(); if (n - last < 80) return; last = n; const el = document.createElement('div'); el.className = 'paw-trail'; el.innerHTML = '🐾'; Object.assign(el.style, { position: 'fixed', left: e.clientX + 'px', top: e.clientY + 'px', transform: 'translate(-50%, -50%)', pointerEvents: 'none', zIndex: 99997, fontSize: '16px', opacity: '0.55', transition: 'all 0.7s ease-out' }); document.body.appendChild(el); requestAnimationFrame(() => { el.style.opacity = '0'; el.style.transform = `translate(-50%, -50%) translate(${(Math.random()-0.5)*30}px, ${-20 - Math.random()*20}px) scale(0.6) rotate(${(Math.random()-0.5)*60}deg)`; }); setTimeout(() => el.remove(), 700); }; })());
+  }
+  async function joinInvite(token, lg) {
+    await fetchLedgers();
+    const existing = State.ledgers.find(l => l.id === lg.id);
+    if (existing) { toast('您已在该账本中'); await switchLedger(lg.id); return; }
+    const join = await api('/api/invites/' + token + '/join', { method: 'POST' });
+    if (join.ok) { toast('加入成功！'); await fetchLedgers(); await switchLedger(join.ledgerId); }
+    else toast(join.msg || '加入失败');
+  }
+  async function handleInviteLink() {
+    const hash = location.hash; const m = hash.match(/invite=([^&]+)/); if (!m) return;
+    const token = m[1];
+    const info = await api('/api/invites/' + token);
+    if (!info.ok) { toast('邀请链接无效或已失效'); location.hash = ''; return; }
+    const lg = info.ledger;
+    if (State.currentUser) {
+      await joinInvite(token, lg);
+      location.hash = '';
+    } else {
+      toast('请先登录/注册后再加入账本「' + lg.name + '」');
+      window.__afterLogin = async () => { if (State.currentUser) await joinInvite(token, lg); location.hash = ''; window.__afterLogin = null; };
+    }
+  }
+  async function boot() {
+    bindAuth(); bindAppEvents(); bindImportEvents(); initPawCursor();
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      const result = await api('/api/user');
+      if (result.ok) {
+        State.currentUser = result.user;
+        await fetchLedgers();
+        let lid = localStorage.getItem(CUR_LEDGER_KEY);
+        if (!State.ledgers.find(l => l.id === lid)) lid = State.ledgers[0]?.id;
+        if (lid) {
+          await fetchLedger(lid);
+          await showApp();
+          if (window.__afterLogin) setTimeout(window.__afterLogin, 100);
+        } else {
+          await showApp();
+        }
+      } else {
+        localStorage.removeItem(TOKEN_KEY);
+        showAuthPage();
+      }
+    } else {
+      showAuthPage();
+    }
+    setTimeout(handleInviteLink, 50);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  /* ========== CSV 账单导入 ========== */
+  let pendingImportRecords = [];
+  let importSource = 'alipay';
+
+  function autoMatchCategory(type, text) {
+    const l = ledger();
+    const cats = (l.categories && l.categories[type]) || [];
+    if (cats.length === 0) return null;
+    const kw = {
+      '餐饮': ['餐','饭','食','外卖','美团','饿了么','饮','咖啡','奶茶','面','火锅','烧烤','小吃','早餐','午餐','晚餐','夜宵','蜜雪','瑞幸','星巴克','肯德基','麦当劳','汉堡','寿司','烧烤'],
+      '交通': ['车','地铁','公交','打车','滴滴','出租','高铁','火车','机票','飞机','停车','加油','充电','骑行','共享单车','哈啰','青桔'],
+      '购物': ['淘宝','京东','拼多多','天猫','超市','商品','购买','商城','小店','旗舰','抖音','快手','得物','唯品'],
+      '娱乐': ['电影','游戏','KTV','音乐','视频','会员','票','演出','游乐','网吧','steam','网易云','腾讯视频','爱奇艺','优酷','B站','哔哩'],
+      '居住': ['房租','水电','物业','燃气','宽带','网费','电费','水费'],
+      '医疗': ['药','医院','诊所','挂号','体检','牙','眼科','药房','大药房'],
+      '教育': ['学费','书','课程','培训','考试','学习','得到','知乎','樊登'],
+      '通讯': ['话费','流量','充值','移动','联通','电信'],
+      '日用': ['纸','洗','日用','清洁','护理','牙膏','洗发','沐浴','洗衣']
+    };
+    for (const cat of cats) {
+      const list = kw[cat.name] || [];
+      if (list.some(k => text.includes(k))) return cat.id;
+    }
+    const other = cats.find(c => c.name === '其他');
+    return other ? other.id : cats[0].id;
+  }
+
+  function parseBillCSV(text) {
+    text = text.replace(/^\uFEFF/, '');
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    let headerIdx = -1, headers = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes('收/支') && lines[i].includes('金额')) {
+        headerIdx = i; headers = lines[i].split(',').map(h => h.trim().replace(/"/g, ''));
+        break;
+      }
+    }
+    if (headerIdx === -1) return [];
+    const ci = {};
+    headers.forEach((h, i) => {
+      if (h.includes('收/支') || h.includes('收支')) ci.type = i;
+      if (h.includes('金额')) ci.amount = i;
+      if (h.includes('交易创建时间') || h.includes('交易时间') || h.includes('付款时间')) ci.time = i;
+      if (h.includes('商品名称') || h.includes('商品')) ci.name = i;
+      if (h.includes('交易对方') || h.includes('对方')) ci.merchant = i;
+      if (h.includes('交易分类') || h.includes('交易类型')) ci.cat = i;
+      if (h.includes('备注')) ci.note = i;
+    });
+    const records = [];
+    for (let i = headerIdx + 1; i < lines.length; i++) {
+      const cols = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+      if (cols.length < 3) continue;
+      const tr = cols[ci.type] || '';
+      let type = '';
+      if (tr.includes('支出')) type = 'expense';
+      else if (tr.includes('收入')) type = 'income';
+      else continue;
+      const amtStr = (cols[ci.amount] || '').replace(/[¥￥,\s元]/g, '');
+      const amt = parseFloat(amtStr);
+      if (!amt || amt <= 0) continue;
+      let ds = cols[ci.time] || '';
+      const dm = ds.match(/(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+      let date = todayStr();
+      if (dm) date = dm[1] + '-' + dm[2].padStart(2, '0') + '-' + dm[3].padStart(2, '0');
+      const merchant = cols[ci.merchant] || '';
+      const name = cols[ci.name] || '';
+      const note = [merchant, name].filter(Boolean).join(' ').slice(0, 50);
+      const catId = autoMatchCategory(type, note);
+      records.push({ type, amount: amt.toFixed(2), date, catId, note, member: State.currentUser.username });
+    }
+    return records;
+  }
+
+  function showImportPreview(records) {
+    pendingImportRecords = records;
+    const wrap = document.getElementById('importPreviewWrap');
+    const summary = document.getElementById('importSummary');
+    const btn = document.getElementById('confirmImport');
+    if (records.length === 0) {
+      wrap.style.display = 'none';
+      summary.style.display = 'block';
+      summary.innerHTML = '未解析到有效记录，请检查文件格式';
+      btn.disabled = true;
+      return;
+    }
+    const exp = records.filter(r => r.type === 'expense');
+    const inc = records.filter(r => r.type === 'income');
+    const expTotal = exp.reduce((s, r) => s + parseFloat(r.amount), 0);
+    const incTotal = inc.reduce((s, r) => s + parseFloat(r.amount), 0);
+    summary.style.display = 'block';
+    summary.innerHTML = `共 <b>${records.length}</b> 条记录 · 支出 <b style="color:#E87785">${fmt(expTotal)}</b> · 收入 <b style="color:#4FB57E">${fmt(incTotal)}</b>`;
+    wrap.style.display = 'block';
+    wrap.innerHTML = records.slice(0, 100).map(r => {
+      const cat = findCat(r.type, r.catId) || { name: '其他', icon: '📌' };
+      return `<div class="import-preview-row">
+        <div class="ipr-date">${r.date.slice(5)}</div>
+        <div class="ipr-name">${escapeHtml(r.note || cat.name)}</div>
+        <div class="ipr-cat">${cat.icon} ${cat.name}</div>
+        <div class="ipr-amount ${r.type}">${r.type === 'income' ? '+' : '-'}${fmt(r.amount)}</div>
+      </div>`;
+    }).join('') + (records.length > 100 ? `<div style="text-align:center;padding:10px;color:var(--text-light);font-size:12px;">还有 ${records.length - 100} 条...</div>` : '');
+    btn.disabled = false;
+  }
+
+  function openImportModal() {
+    document.getElementById('importModal').style.display = '';
+    document.getElementById('importPreviewWrap').style.display = 'none';
+    document.getElementById('importSummary').style.display = 'none';
+    document.getElementById('confirmImport').disabled = true;
+    document.getElementById('importFile').value = '';
+    pendingImportRecords = [];
+  }
+
+  function bindImportEvents() {
+    document.getElementById('importBtn').addEventListener('click', openImportModal);
+    document.getElementById('cancelImport').addEventListener('click', () => { document.getElementById('importModal').style.display = 'none'; });
+    document.getElementById('importModal').addEventListener('click', (e) => { if (e.target.id === 'importModal') e.target.style.display = 'none'; });
+    document.querySelectorAll('.import-tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.import-tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        importSource = t.dataset.source;
+      });
+    });
+    const dz = document.getElementById('importDropzone');
+    const fileInput = document.getElementById('importFile');
+    dz.addEventListener('click', () => fileInput.click());
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--primary-deep)'; });
+    dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
+    dz.addEventListener('drop', (e) => {
+      e.preventDefault(); dz.style.borderColor = '';
+      if (e.dataTransfer.files[0]) handleImportFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => { if (e.target.files[0]) handleImportFile(e.target.files[0]); });
+    document.getElementById('confirmImport').addEventListener('click', async () => {
+      if (!canEdit(State.currentLedgerId, State.currentUser.username)) { toast('暂无编辑权限'); return; }
+      if (pendingImportRecords.length === 0) { toast('没有可导入的记录'); return; }
+      const result = await api('/api/ledgers/' + State.currentLedgerId + '/records/batch', { method: 'POST', body: { records: pendingImportRecords } });
+      if (result.ok) {
+        document.getElementById('importModal').style.display = 'none';
+        toast('成功导入 ' + (result.count != null ? result.count : pendingImportRecords.length) + ' 条记录 ✨');
+        await refreshLedger();
+        refreshPageData();
+      } else {
+        toast(result.msg || '导入失败');
+      }
+    });
+  }
+
+  function handleImportFile(file) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.csv')) { toast('请上传 CSV 格式文件'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      const records = parseBillCSV(text);
+      showImportPreview(records);
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+})();
+</script>
+</body>
+</html>
