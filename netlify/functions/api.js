@@ -529,3 +529,5 @@ exports.handler = async (event, context) => {
   const result = await handler(event, context);
   return result;
 };
+
+// patch: ensure serverless require at top  
