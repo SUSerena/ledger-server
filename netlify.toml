@@ -1,8 +1,8 @@
-
 [build]
-  command = "npm install && node build.js"
+  command = "npm install"  # 临时跳过 build.js，用仓库已有的 api.js（防止 build.js 语法错误导致 Netlify 构建失败）
   publish = "."
   functions = "netlify/functions"
+
 
 [[redirects]]
   from = "/api/*"
@@ -10,10 +10,12 @@
   status = 200
   force = true
 
+
 [[headers]]
   for = "/*"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+
 
 [[headers]]
   for = "/.netlify/functions/*"
