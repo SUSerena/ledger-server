@@ -32,70 +32,94 @@ const DEFAULT_INCOME = [
 const AVATARS = ['🐰','🐱','🐶','🐻','🦊','🐼','🐨','🐯','🦁','🐸','🦄','🐷'];
 const ROLE_WEIGHT = { owner: 3, admin: 2, editor: 1, viewer: 0 };
 
-// 初始化数据库
+// 初始化数据库（支持懒加载，首次请求时建表，适用于本地和 Netlify Functions）
+let dbInited = false;
+let dbInitPromise = null;
 async function initDB() {
-  const client = await pool.connect();
+  if (dbInited) return;
+  if (dbInitPromise) return dbInitPromise;
+  dbInitPromise = (async () => {
+    const client = await pool.connect();
+    try {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          theme TEXT DEFAULT 'pink',
+          avatar TEXT DEFAULT '🐱',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS sessions (
+          token TEXT PRIMARY KEY,
+          user_id INT REFERENCES users(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS ledgers (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          description TEXT DEFAULT '',
+          owner_id INT REFERENCES users(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS members (
+          ledger_id TEXT REFERENCES ledgers(id) ON DELETE CASCADE,
+          user_id INT REFERENCES users(id) ON DELETE CASCADE,
+          role TEXT DEFAULT 'editor',
+          joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (ledger_id, user_id)
+        );
+        CREATE TABLE IF NOT EXISTS categories (
+          id TEXT PRIMARY KEY,
+          ledger_id TEXT REFERENCES ledgers(id) ON DELETE CASCADE,
+          type TEXT NOT NULL,
+          name TEXT NOT NULL,
+          icon TEXT DEFAULT '📌',
+          sort INT DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS records (
+          id TEXT PRIMARY KEY,
+          ledger_id TEXT REFERENCES ledgers(id) ON DELETE CASCADE,
+          type TEXT NOT NULL,
+          amount REAL NOT NULL,
+          date TEXT NOT NULL,
+          category_id TEXT,
+          note TEXT DEFAULT '',
+          member_username TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS invites (
+          token TEXT PRIMARY KEY,
+          ledger_id TEXT REFERENCES ledgers(id) ON DELETE CASCADE,
+          role TEXT DEFAULT 'viewer',
+          created_by INT REFERENCES users(id),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      dbInited = true;
+      console.log('数据库初始化完成');
+    } finally {
+      client.release();
+    }
+  })();
+  return dbInitPromise;
+}
+
+// 确保数据库已初始化的中间件（所有 API 请求前先过这里，保证表存在）
+async function ensureDB(req, res, next) {
   try {
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        theme TEXT DEFAULT 'pink',
-        avatar TEXT DEFAULT '🐱',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE TABLE IF NOT EXISTS sessions (
-        token TEXT PRIMARY KEY,
-        user_id INT REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE TABLE IF NOT EXISTS ledgers (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        description TEXT DEFAULT '',
-        owner_id INT REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE TABLE IF NOT EXISTS members (
-        ledger_id TEXT REFERENCES ledgers(id) ON DELETE CASCADE,
-        user_id INT REFERENCES users(id) ON DELETE CASCADE,
-        role TEXT DEFAULT 'editor',
-        joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (ledger_id, user_id)
-      );
-      CREATE TABLE IF NOT EXISTS categories (
-        id TEXT PRIMARY KEY,
-        ledger_id TEXT REFERENCES ledgers(id) ON DELETE CASCADE,
-        type TEXT NOT NULL,
-        name TEXT NOT NULL,
-        icon TEXT DEFAULT '📌',
-        sort INT DEFAULT 0
-      );
-      CREATE TABLE IF NOT EXISTS records (
-        id TEXT PRIMARY KEY,
-        ledger_id TEXT REFERENCES ledgers(id) ON DELETE CASCADE,
-        type TEXT NOT NULL,
-        amount REAL NOT NULL,
-        date TEXT NOT NULL,
-        category_id TEXT,
-        note TEXT DEFAULT '',
-        member_username TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE TABLE IF NOT EXISTS invites (
-        token TEXT PRIMARY KEY,
-        ledger_id TEXT REFERENCES ledgers(id) ON DELETE CASCADE,
-        role TEXT DEFAULT 'viewer',
-        created_by INT REFERENCES users(id),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-    console.log('数据库初始化完成');
-  } finally {
-    client.release();
+    await initDB();
+    next();
+  } catch (e) {
+    console.error('数据库初始化失败:', e);
+    res.status(500).json({ ok: false, msg: '数据库初始化失败: ' + e.message });
   }
 }
+app.use((req, res, next) => {
+  // 只对 /api/* 请求启用初始化中间件，静态资源请求跳过
+  if (req.path.startsWith('/api/')) return ensureDB(req, res, next);
+  next();
+});
 
 // 生成唯一ID
 function genId(prefix) {
