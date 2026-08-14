@@ -1,5 +1,5 @@
 [build]
-  command = "npm install && node build.js"  # 构建时自动将 server.js 转换为 Netlify Function
+  command = "npm install"  # build.js构建环境exit code 2，跳过，直接用仓库里已有的 netlify/functions/api.js
   publish = "."
   functions = "netlify/functions"
 
