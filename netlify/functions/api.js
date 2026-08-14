@@ -1,4 +1,7 @@
+const serverless = require('serverless-http');
 /**
+ * 人生的账本 - 后端服务器
+ * Express + PostgreSQL
  * 人生的账本 - 后端服务器
  * Express + PostgreSQL
  */
