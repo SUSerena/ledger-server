@@ -1,8 +1,7 @@
 {
-  "name": "ledger-server",
-  "version": "1.0.0",
-  "description": "人生的账本后端服务",
-  "main": "server.js",
+  "name": "ledger-app",
+  "version": "2.0.0",
+  "description": "人生的账本 - 前端 + Netlify Functions 后端",
   "scripts": {
     "start": "node server.js"
   },
@@ -10,6 +9,7 @@
     "express": "^4.18.2",
     "pg": "^8.11.3",
     "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "serverless-http": "^3.2.0"
   }
 }
